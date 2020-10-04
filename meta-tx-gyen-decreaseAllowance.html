@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GYEN Meta Transaction</title>
+</head>
+<body>
+  <h1>GYEN Authorizition for DecreaseAllowance</h1>
+  <h2>Authorizition</h2>
+  </div>
+    <div class="card">
+    <label>Network: </label>&nbsp;<span id="network"></span>
+    <br />
+    <label>Token Address: </label>&nbsp;<span id="token-a"></span>
+    <br />
+    <label>Token Name: </label>&nbsp;<span id="token-n"></span>
+    <br />
+    <label>Token Symbol: </label>&nbsp;<span id="token-s"></span>
+    <br />
+    <label>Your ETH Balance: </label>&nbsp;<span id="eth-b"></span>
+    <br />
+    <label>Your Token Balance: </label>&nbsp;<span id="token-b"></span>
+  </div>    
+  <div id="web3-warning" class="hidden warning">
+    Make sure the example app is being served with an HTTP server. <br />
+    Please install MetaMask: <a href="https://metamask.io/">https://metamask.io/</a>
+  </div>
+  <div class="card">
+    <label>Owner: </label>&nbsp;<span id="my-address"></span>
+    <br />
+    <label>Spender: </label>&nbsp;<input id="to-address" type="text" value="0x00" />
+    <br />
+    <label>Value: </label>&nbsp;<input id="value-value" type="text" value="0" />
+    <br />
+    <label>ValidAfter: </label>&nbsp;<input id="v-after" type="text" value="0(seconds since unix epoch)" />
+    <br />
+    <label>ValidBefore: </label>&nbsp;<input id="v-before" type="text" value="0(seconds since unix epoch)" />
+    <br />
+    <label>Nonce: </label>&nbsp;<input id="nonce" type="text" value="0" />
+    <br />
+    <input id="sign" type="submit" value="Authorize for DecreaseAllowance" />
+  </div>
+  <h2>Post Transaction</h2>
+  <div class="card">
+    <label>Owner: </label>&nbsp;<input id="p-from-address" type="text" value="from address"/>
+    <br />
+    <label>Spender: </label>&nbsp;<input id="p-to-address" type="text" value="to address" />
+    <br />
+    <label>Value: </label>&nbsp;<input id="p-value-value" type="text" value="value" />
+    <br />
+    <label>ValidAfter: </label>&nbsp;<input id="p-v-after" type="text" value="validAfter(seconds since unix epoch)" />
+    <br />
+    <label>ValidBefore: </label>&nbsp;<input id="p-v-before" type="text" value="validBefore(seconds since unix epoch)" />
+    <br />
+    <label>Nonce: </label>&nbsp;<input id="p-nonce" type="text" value="0" />
+    <br />
+    <label>Signature: </label>&nbsp;<input id="p-signature" type="text" />
+    <br />
+    <input id="delegate" type="submit" value="Post Transaction" />
+     <br />
+     <label>Transaction Status: </label>&nbsp;<span id="tx-status"></span>
+     <br />
+     <label>Transaction Hash: </label>&nbsp;<span id="tx-hash"></span>
+  </div>
+</body>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.6/dist/web3.min.js"></script>
+<script type="text/javascript" src="./dependencies/GYEN.js"></script>
+<script type="text/javascript" src="./dependencies/Token_V2.js"></script>
+<script type="text/javascript">
+
+  const createMessageSig = (name, version, chainId = 1, contractAdress, owner, spender, decrement, validAfter, validBefore, nonce = 0) => {
+    const types = {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      // "transferWithAuthorization(address,address,uint256,uint256,uint256,bytes32,uint8,bytes32,bytes32)"
+      DecreaseAllowanceWithAuthorization: [
+        { name: 'owner', type: 'address' },
+        { name: 'spender', type: 'address' },
+        { name: 'decrement', type: 'uint256' },
+        { name: 'validAfter', type: 'uint256' },
+        { name: 'validBefore', type: 'uint256' },
+        { name: 'nonce', type: 'bytes32' },
+      ]
+    };
+
+    const primaryType = 'DecreaseAllowanceWithAuthorization';
+    const domain = { name: name, version: version, chainId, verifyingContract: contractAdress };
+    const message = { owner, spender, decrement, validAfter, validBefore, nonce };
+
+    console.log(domain);
+    console.log(message);
+
+    return JSON.stringify({ types, primaryType, domain, message });
+  };
+
+  window.addEventListener('load', (event) => {
+    const web3Warning = document.getElementById('web3-warning');
+    const myAddress = document.getElementById('my-address');
+    const toAddress = document.getElementById('to-address');
+    const txValue = document.getElementById('value-value');
+    const validAfter = document.getElementById('v-after');
+    const validBefore = document.getElementById('v-before');
+    const nonce = document.getElementById('nonce');
+    const sign = document.getElementById('sign');
+
+    const p_signature = document.getElementById('p-signature');
+    const p_fromAddrss = document.getElementById('p-from-address');
+    const p_toAddress = document.getElementById('p-to-address');
+    const p_txValue = document.getElementById('p-value-value');
+    const p_validAfter = document.getElementById('p-v-after');
+    const p_validBefore = document.getElementById('p-v-before');
+    const p_nonce = document.getElementById('p-nonce');
+
+    const txStatus = document.getElementById('tx-status');
+    const txHash = document.getElementById('tx-hash');
+
+    const nt = document.getElementById('network'); 
+    const ta = document.getElementById('token-a'); 
+    const tn = document.getElementById('token-n'); 
+    const ts = document.getElementById('token-s'); 
+    const yeb = document.getElementById('eth-b');
+    const ytb = document.getElementById('token-b');  
+
+    if (typeof window.ethereum === 'undefined') {
+      console.error('Client does not have an active Web3 provider or the example app is not being run from an HTTP server.');
+      console.log('Go here to install MetaMask: https://metamask.io/');
+      alert(
+        'You need a Web3 provider to run this page. ' +
+        'Go here to install MetaMask:\n\n' +
+        'https://metamask.io/'
+      );
+      web3Warning.classList.remove('hidden');
+    } else {
+      main();
+    }
+
+    async function main() {
+
+      web3 = new Web3(web3.currentProvider);
+
+      const newtworkType = await web3.eth.net.getNetworkType();
+      console.log('newtworkType:', newtworkType);
+      const networkId = await web3.eth.net.getId();
+      console.log('networkId:', networkId);
+      const proxyAddress = window.gyen.networks[networkId].address;
+      console.log("zusd address: ", proxyAddress);
+      const tokenV2Address =  "tokenv2 address"
+      console.log("tokenv2 address: ", tokenV2Address);
+
+      const proxyAbi = window.gyen.abi;
+      const proxy = new web3.eth.Contract(proxyAbi, proxyAddress);
+
+      const accounts = await window.ethereum.enable();
+      const myAccount = accounts[0];
+      console.log("myAccount", myAccount);
+
+      const tokenAbi = window.tokenv2.abi;
+      const token = new web3.eth.Contract(tokenAbi, proxyAddress);
+
+      //let tt = await web3.utils.asciiToHex("0");
+      //let nr = await token.methods.authorizationState(myAccount,tt).call();
+      //console.log("nonce result",nr);
+
+      myAddress.innerText = myAccount;
+      nt.innerText = newtworkType; 
+      const t_name = await token.methods.name().call();
+      tn.innerText = t_name;
+      const t_symbol = await token.methods.symbol().call();
+      ts.innerText = t_symbol;
+      const t_balance = await token.methods.balanceOf(myAccount).call();
+      ytb.innerText = t_balance;
+      const e_balance = await web3.eth.getBalance(myAccount);
+      yeb.innerText = e_balance/1e18 + " ETH";
+      //https://kovan.etherscan.io/token/0x3c6ffff298650e29db51ebf697261574a04b9389
+      const linkaddressstr = `https://${newtworkType}.etherscan.io/token/` + proxyAddress;
+      ta.innerHTML = `<a href=${linkaddressstr} target='_blank'> ${proxyAddress}</a>`;
+
+      sign.onclick = async () => {
+        const _contractAdress = proxyAddress;
+        const _from = myAccount;
+        const _to = toAddress.value;
+        //const _nonce = "0x3000000000000000000000000000000000000000000000000000000000000000";
+        const _nonce = await web3.utils.asciiToHex(nonce.value);
+        const _value = txValue.value;
+        const _validAfter = validAfter.value;
+        const _validBefore = validBefore.value; // expiration of signature, in seconds since unix epoch
+        const _name = await token.methods.name().call();
+        const _chainId = web3.currentProvider.networkVersion;
+        const msgParams = createMessageSig(_name, "2", _chainId, _contractAdress, _from, _to, _value, _validAfter, _validBefore, _nonce);
+
+        web3.currentProvider.sendAsync({
+          method: 'eth_signTypedData_v4',
+          params: [ myAccount, msgParams ],
+          from: myAccount
+        }, async (err, result) => {
+          if (err) {
+            console.error('ERROR', err);
+            alert(err);
+            return;
+          } else if (result.error) {
+            console.error('ERROR', result.error.message);
+            alert(result.error.message);
+            return;
+          }
+
+          //
+          p_fromAddrss.value = myAccount;
+          p_toAddress.value = _to;
+          p_txValue.value = _value;
+          p_validAfter.value = _validAfter;
+          p_validBefore.value = _validBefore;
+          p_nonce.value = _nonce;
+          //p_nonce.value = "0x3000000000000000000000000000000000000000000000000000000000000000";
+          const sig = result.result;
+          p_signature.value = sig;
+
+          console.log('signature', sig);
+          console.log('msgParams', JSON.parse(msgParams));
+        });
+      };
+
+      delegate.onclick = async () => {
+
+        const sig = p_signature.value;
+
+        const r = '0x' + sig.substring(2).substring(0, 64);
+        const s = '0x' + sig.substring(2).substring(64, 128);
+        const v = '0x' + sig.substring(2).substring(128, 130);
+
+        console.log('v', v);
+        console.log('r', r);
+        console.log('s', s);
+        //const nonceByte32 = await web3.utils.asciiToHex(p_nonce.value);
+        const nonceBytes32 =  p_nonce.value;
+        console.log("nonceByte32:   ", nonceBytes32);
+
+        try{
+          const tx = await token.methods.decreaseAllowanceWithAuthorization(
+            p_fromAddrss.value,
+            p_toAddress.value,
+            p_txValue.value,
+            p_validAfter.value,
+            p_validBefore.value,
+            nonceBytes32,
+            v, r, s).send({
+            from: myAccount,
+            gasLimit: web3.utils.toHex(1000000),
+            gasPrice: web3.utils.toHex(25000000000),
+          });
+
+          txStatus.innerText = tx.status;
+
+          const linkstr = `https://${newtworkType}.etherscan.io/tx/` + tx.transactionHash;
+          txHash.innerHTML = `<a href=${linkstr} target='_blank'> Check in Etherscan</a>`;;
+
+        }catch(error){
+          console.log("error:\n", error);
+          txStatus.innerText = "false";
+          //var strs = error.indexOf("transactionHash");
+          //const linkstre = "https://ropsten.etherscan.io/tx/" + error.substring(str+18,66);
+          //txHash.innerHTML = `<a href=${linkstre} target='_blank'> Check in Etherscan</a>`;
+          txHash.innerHTML = error;
+        }
+
+        //end
+      };
+    }
+  });
+</script>
+
+</html>

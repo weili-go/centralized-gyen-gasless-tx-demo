@@ -722,7 +722,7 @@ window.zusd = {
         }
       },
       "links": {},
-      "address": "0x968B49F2c29A140eD41d1F7385269c6a55e99882",
+      "address": "0x4E50a95B7c7bcbCDBB689ccf668d62cE107F62f5",
       "transactionHash": "0xee806ded92c6b5c33c42d1cb6c0b7476c564a56ac8050595959e9e8017eb966c"
     },
     "42": {

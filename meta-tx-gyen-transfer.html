@@ -10,6 +10,7 @@
   <h2>Authorizition</h2>
   </div>
     <div class="card">
+    <br/><span style="color:red" id="fatalmessage"></span>
     <label>Network: </label>&nbsp;<span id="network"></span>
     <br />
     <label>Token Address: </label>&nbsp;<span id="token-a"></span>
@@ -162,6 +163,13 @@
       console.log('newtworkType:', newtworkType);
       const networkId = await web3.eth.net.getId();
       console.log('networkId:', networkId);
+
+      if (networkId != 3 && networkId != 42) {
+        const fatalmessage = document.getElementById('fatalmessage')
+        fatalmessage.innerHTML = "Wrong network. please switch to 'kovan' or 'ropsten'"
+        return
+      }
+
       const proxyAddress = window.gyen.networks[networkId].address;
       console.log("gyen address: ", proxyAddress);
       //const tokenV2Address =  "tokenv2 address"

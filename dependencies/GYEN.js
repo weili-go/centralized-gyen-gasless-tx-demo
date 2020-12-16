@@ -722,7 +722,7 @@ window.gyen = {
         }
       },
       "links": {},
-      "address": "0x89Ebdb14400a13e956A5Be01EE38b8eA0eDd6b6e",
+      "address": "0xC82aF3f91947486b398990657cA16Cf86D643C19",
       "transactionHash": "0x2a72af41ba4ae9ef8b47265894a98316bf8534fa77eac72ef33676df92ea5bc1"
     },
     "42": {
@@ -760,7 +760,7 @@ window.gyen = {
         }
       },
       "links": {},
-      "address": "0x0BFa7Ab9F16f7a89323c1f89089d12788e6C22A5",
+      "address": "0x6C8c489167cd40B6a609Fa37d832F35B556aE617",
       "transactionHash": "0x525de2ce73dfe04b20b935c8ecbde469d55d50f60f8a91f7544c2d64d8f36058"
     },
     "1337": {

@@ -725,6 +725,44 @@ window.zusd = {
       "address": "0x4E50a95B7c7bcbCDBB689ccf668d62cE107F62f5",
       "transactionHash": "0xee806ded92c6b5c33c42d1cb6c0b7476c564a56ac8050595959e9e8017eb966c"
     },
+    "4": {
+      "events": {
+        "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "previousAdmin",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "newAdmin",
+              "type": "address"
+            }
+          ],
+          "name": "AdminChanged",
+          "type": "event",
+          "signature": "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f"
+        },
+        "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "implementation",
+              "type": "address"
+            }
+          ],
+          "name": "Upgraded",
+          "type": "event",
+          "signature": "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b"
+        }
+      },
+      "links": {},
+      "address": "0x641DB0f7591a060b4438F5a0032F6Fc97E6a8eC9",
+      "transactionHash": "0xee806ded92c6b5c33c42d1cb6c0b7476c564a56ac8050595959e9e8017eb966c"
+    },
     "42": {
       "events": {
         "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f": {
@@ -760,7 +798,7 @@ window.zusd = {
         }
       },
       "links": {},
-      "address": "0xfe738253a9e0943e881d0844285e50F8a0123d19",
+      "address": "0x641DB0f7591a060b4438F5a0032F6Fc97E6a8eC9",
       "transactionHash": "0x1297da4a15dec58658015df40e12867e52857067236b25f10a16f9d64a032e0e"
     },
     "1337": {

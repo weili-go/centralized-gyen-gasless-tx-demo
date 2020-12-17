@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="./style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Get ZUSD Holders</title>
+</head>
+<body>
+  <h1>ZUSD Holders</h1>
+  <div id="web3-warning" class="hidden warning">
+    Make sure the example app is being served with an HTTP server. <br />
+    Please install MetaMask: <a href="https://metamask.io/">https://metamask.io/</a>
+  </div>
+  <div class="card">
+    <label>ZUSD Holders: </label>&nbsp;<span id="holders-amount"></span>
+    <br />
+  </div>
+  <div id="holders"></div>
+</body>
+
+<script type="text/javascript" src="./dependencies/handlebars.min.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.6/dist/web3.min.js"></script>
+<script type="text/javascript" src="./dependencies/ZUSD.js"></script>
+<script type="text/javascript" src="./dependencies/Token_V2.js"></script>
+<script type="text/javascript">
+  window.addEventListener('load', async (event) => {
+    const web3Warning = document.getElementById('web3-warning');
+
+    if (typeof window.ethereum === 'undefined') {
+      console.error('Client does not have an active Web3 provider or the example app is not being run from an HTTP server.');
+      console.log('Go here to install MetaMask: https://metamask.io/');
+      alert(
+        'You need a Web3 provider to run this page. ' +
+        'Go here to install MetaMask:\n\n' +
+        'https://metamask.io/'
+      );
+      web3Warning.classList.remove('hidden');
+    }
+
+    const hm = document.getElementById('holders-amount');
+
+    web3 = new Web3(web3.currentProvider);
+
+    const newtworkType = await web3.eth.net.getNetworkType();
+    console.log('newtworkType:', newtworkType);
+    const chainID = await web3.eth.net.getId();
+    console.log('networkId:', chainID);
+    console.log(chainID); 
+    // This app only works with Ropsten or Main
+    if (chainID != '1' && chainID != '3' && chainID != '4' && chainID != '42') {
+      console.log(chainID);
+      alert('Please select the Main or Ropsten network.');
+    }
+
+    const holderListContainer = document.getElementById('holders');
+    const holderListTemplate = Handlebars.compile(`
+      {{#each this}}
+      <div class="card">
+        <h4>{{ address }}</h4>
+        <label>USDC Tokens: </label>&nbsp;<span>{{ balance }}</span>
+      </div>
+    {{/each}}
+    `);
+
+    // Ropsten COMP Contract
+    //const proxyAddress = '0xc56c2b7e71B54d38Aab6d52E94a04Cbfa8F604fA'
+    //const tokenAbi = window.tokenv1.abi;
+    const proxyAddress = window.zusd.networks[chainID].address;
+    const tokenAbi = window.tokenv2.abi
+    const token = new web3.eth.Contract(tokenAbi, proxyAddress);
+
+
+    (async () => {
+      const name = await token.methods.name().call();
+      console.log(name);
+
+      const transfers = await token.getPastEvents('Transfer', {
+        fromBlock: 0,
+        toBlock: 'latest'
+      });
+
+      const pastHolders = [];
+      const pastHolderBalanceGets = [];
+
+      transfers.forEach((transfer, i) => {
+        const address = transfer.returnValues.to;
+
+        if (pastHolders.indexOf(address) > -1) return;
+
+        pastHolders.push(address);
+        pastHolderBalanceGets.push(token.methods.balanceOf(address).call());
+        //delegateGets.push(comp.methods.delegates(address).call());
+      });
+
+      const balances = await Promise.all(pastHolderBalanceGets);
+      //const delegates = await Promise.all(delegateGets);
+      const holders = [];
+
+      balances.forEach((balance, i) => {
+        if (balance > 0) {
+          holders.push({
+            address: pastHolders[i],
+            balance: parseFloat(balance / 1e6).toFixed(6)
+          });
+        }
+      });
+
+      holders.sort((a,b) => {
+        return parseFloat(a.balance) < parseFloat(b.balance) ? 1 : -1;
+      });
+
+      console.log(holders);
+      hm.innerText = holders.length;
+
+      holderListContainer.innerHTML = holderListTemplate(holders);
+    })();
+  });
+</script>
+
+</html>

@@ -725,6 +725,44 @@ window.gyen = {
       "address": "0xC82aF3f91947486b398990657cA16Cf86D643C19",
       "transactionHash": "0x2a72af41ba4ae9ef8b47265894a98316bf8534fa77eac72ef33676df92ea5bc1"
     },
+    "4": {
+      "events": {
+        "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": false,
+              "name": "previousAdmin",
+              "type": "address"
+            },
+            {
+              "indexed": false,
+              "name": "newAdmin",
+              "type": "address"
+            }
+          ],
+          "name": "AdminChanged",
+          "type": "event",
+          "signature": "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f"
+        },
+        "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b": {
+          "anonymous": false,
+          "inputs": [
+            {
+              "indexed": true,
+              "name": "implementation",
+              "type": "address"
+            }
+          ],
+          "name": "Upgraded",
+          "type": "event",
+          "signature": "0xbc7cd75a20ee27fd9adebab32041f755214dbc6bffa90cc0225b39da2e5c2d3b"
+        }
+      },
+      "links": {},
+      "address": "0x4e53Cb162DFBc3cF7A414A9d0dA5e00FD9b86972",
+      "transactionHash": "0x525de2ce73dfe04b20b935c8ecbde469d55d50f60f8a91f7544c2d64d8f36058"
+    },
     "42": {
       "events": {
         "0x7e644d79422f17c01e4894b5f4f588d331ebfa28653d42ae832dc59e38c9798f": {
@@ -760,7 +798,7 @@ window.gyen = {
         }
       },
       "links": {},
-      "address": "0x6C8c489167cd40B6a609Fa37d832F35B556aE617",
+      "address": "0x4e53Cb162DFBc3cF7A414A9d0dA5e00FD9b86972",
       "transactionHash": "0x525de2ce73dfe04b20b935c8ecbde469d55d50f60f8a91f7544c2d64d8f36058"
     },
     "1337": {

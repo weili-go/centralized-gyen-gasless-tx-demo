@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <link rel="stylesheet" type="text/css" href="style.css">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GYEN Meta Transaction</title>
+</head>
+<body>
+  <h1>GYEN Gasless Transfer Wallet</h1>
+  <h2>Authorizition</h2>
+  </div>
+    <div class="card">
+    <br/><span style="color:red" id="fatalmessage"></span>
+    <label>Network: </label>&nbsp;<span id="network"></span>
+    <br />
+    <label>Token Address: </label>&nbsp;<span id="token-a"></span>
+    <br />
+    <label>Token Name: </label>&nbsp;<span id="token-n"></span>
+    <br />
+    <label>Token Symbol: </label>&nbsp;<span id="token-s"></span>
+    <br />
+    <label>Your ETH Balance: </label>&nbsp;<span id="eth-b"></span>
+    <br />
+    <label>Your Token Balance: </label>&nbsp;<span id="token-b"></span>
+  </div>    
+  <div id="web3-warning" class="hidden warning">
+    Make sure the example app is being served with an HTTP server. <br />
+    Please install MetaMask: <a href="https://metamask.io/">https://metamask.io/</a>
+  </div>
+  <h2>Relayer Info of single server</h2>
+  <input id="getsingle" type="submit" value="Get relayer information" />
+  <div class="card">
+    <label>Relayer Address: </label>&nbsp;<span id="post-a"></span>
+    <br />
+    <label>Relayer Balance: </label>&nbsp;<span id="post-b"></span>
+    <br />
+    <label>Relayer send gasPrice: </label>&nbsp;<span id="post-gp"></span>
+    <br />
+    <label>Relayer send nonce: </label>&nbsp;<span id="post-nonce"></span>
+    <br />
+    <label>Relayer send pending nonce: </label>&nbsp;<span id="post-pnonce"></span>
+    <br />
+    <label>Latest block timestamp: </label>&nbsp;<span id="post-tm"></span>
+    <br />
+  </div>
+  <h2>ITX depositer Info</h2>
+  <input id="getitx" type="submit" value="Get depositer information" />
+  <div class="card">
+    <label>Depositer Address: </label>&nbsp;<span id="post-itxa"></span>
+    <br />
+    <label>Depositer Balance: </label>&nbsp;<span id="post-itxb"></span>
+    <br />
+    <label>ITX deposit contract address: </label>&nbsp;<span id="post-itxc"></span>
+    <br />
+    <label>ITX relayer address: </label>&nbsp;<span id="post-itxr"></span>
+    <br />
+  </div>    
+  <div class="card">
+    <label>My Address: </label>&nbsp;<span id="my-address"></span>
+    <br />
+    <label>To address: </label>&nbsp;<input id="to-address" type="text" value="0x00" />
+    <br />
+    <label>Value: </label>&nbsp;<input id="value-value" type="text" value="0" />
+    <br />
+    <label>ValidAfter: </label>&nbsp;<input id="v-after" type="text" value="0(seconds since unix epoch)" />
+    <br />
+    <label>ValidBefore: </label>&nbsp;<input id="v-before" type="text" value="0(seconds since unix epoch)" />
+    <br />
+    <label>Nonce: </label>&nbsp;<input id="nonce" type="text" value="0" />
+    <br />
+    <input id="sign" type="submit" value="Authorize for Transfer with gasless wallet" />
+  </div>
+  <div class="card">
+    <label>From Address: </label>&nbsp;<input id="p-from-address" type="text" value="from address"/>
+    <br />
+    <label>To address: </label>&nbsp;<input id="p-to-address" type="text" value="to address" />
+    <br />
+    <label>Value: </label>&nbsp;<input id="p-value-value" type="text" value="value" />
+    <br />
+    <label>ValidAfter: </label>&nbsp;<input id="p-v-after" type="text" value="validAfter(seconds since unix epoch)" />
+    <br />
+    <label>ValidBefore: </label>&nbsp;<input id="p-v-before" type="text" value="validBefore(seconds since unix epoch)" />
+    <br />
+    <label>Nonce: </label>&nbsp;<input id="p-nonce" type="text" value="0" />
+    <br />
+    <label>Signature.v: </label>&nbsp;<input id="p-signature-v" type="text" />
+    <br />
+    <label>Signature.r: </label>&nbsp;<input id="p-signature-r" type="text" />
+    <br />
+    <label>Signature.s: </label>&nbsp;<input id="p-signature-s" type="text" />
+    <br />
+    <input id="delegate" type="submit" value="Post Transaction by single server" />
+     <br />
+     <label></label>&nbsp;<span id="tx-process"></span>
+     <br />
+     <label>Transaction Status: </label>&nbsp;<span id="tx-status"></span>
+     <br />
+     <label>Transaction Hash: </label>&nbsp;<span id="tx-hash"></span>
+    <input id="delegateitx" type="submit" value="Post Transaction by ITX" />
+     <br />
+     <label></label>&nbsp;<span id="tx-process1"></span>
+     <br />
+     <label>Transaction Status: </label>&nbsp;<span id="tx-status1"></span>
+     <br />
+     <label>Transaction Hash: </label>&nbsp;<span id="tx-hash1"></span>
+     <br />
+     <label>Gas fee deducted from depositer: </label>&nbsp;<span id="tx-gasfee"></span>
+  </div>
+</body>
+
+<script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.6/dist/web3.min.js"></script>
+<script type="text/javascript" src="./dependencies/GYEN.js"></script>
+<script type="text/javascript" src="./dependencies/Token_V2.js"></script>
+<script type="text/javascript" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+<script type="text/javascript">
+
+  const createMessageSig = (name, version, chainId = 1, contractAdress, from, to, value, validAfter, validBefore, nonce = 0) => {
+    const types = {
+      EIP712Domain: [
+        { name: 'name', type: 'string' },
+        { name: 'version', type: 'string' },
+        { name: 'chainId', type: 'uint256' },
+        { name: 'verifyingContract', type: 'address' },
+      ],
+      // "transferWithAuthorization(address,address,uint256,uint256,uint256,bytes32,uint8,bytes32,bytes32)"
+      TransferWithAuthorization: [
+        { name: 'from', type: 'address' },
+        { name: 'to', type: 'address' },
+        { name: 'value', type: 'uint256' },
+        { name: 'validAfter', type: 'uint256' },
+        { name: 'validBefore', type: 'uint256' },
+        { name: 'nonce', type: 'bytes32' },
+      ]
+    };
+
+    const primaryType = 'TransferWithAuthorization';
+    const domain = { name: name, version: version, chainId, verifyingContract: contractAdress };
+    const message = { from, to, value, validAfter, validBefore, nonce };
+
+    console.log(domain);
+    console.log(message);
+
+    return JSON.stringify({ types, primaryType, domain, message });
+  };
+
+  window.addEventListener('load', (event) => {
+
+    const web3Warning = document.getElementById('web3-warning');
+    const myAddress = document.getElementById('my-address');
+    const toAddress = document.getElementById('to-address');
+    const txValue = document.getElementById('value-value');
+    const validAfter = document.getElementById('v-after');
+    const validBefore = document.getElementById('v-before');
+    const nonce = document.getElementById('nonce');
+    const sign = document.getElementById('sign');
+
+    const getsingle = document.getElementById('getsingle');
+    const postgp = document.getElementById('post-gp');
+    const postn = document.getElementById('post-nonce');
+    const postpn = document.getElementById('post-pnonce');
+    const posta = document.getElementById('post-a');
+    const postb = document.getElementById('post-b');
+    const posttm = document.getElementById('post-tm');  
+
+    const itxa = document.getElementById('post-itxa');
+    const itxb = document.getElementById('post-itxb');
+    const itxc = document.getElementById('post-itxc'); 
+    const itxr = document.getElementById('post-itxr');  
+
+    const p_signature_v = document.getElementById('p-signature-v');
+    const p_signature_r = document.getElementById('p-signature-r');
+    const p_signature_s = document.getElementById('p-signature-s');
+    const p_fromAddrss = document.getElementById('p-from-address');
+    const p_toAddress = document.getElementById('p-to-address');
+    const p_txValue = document.getElementById('p-value-value');
+    const p_validAfter = document.getElementById('p-v-after');
+    const p_validBefore = document.getElementById('p-v-before');
+    const p_nonce = document.getElementById('p-nonce');
+
+    const txStatus = document.getElementById('tx-status');
+    const txprocess = document.getElementById('tx-process');
+    const txHash = document.getElementById('tx-hash');
+    const txStatus1 = document.getElementById('tx-status1');
+    const txprocess1 = document.getElementById('tx-process1');
+    const txHash1 = document.getElementById('tx-hash1');
+    const gasfee = document.getElementById('tx-gasfee');
+
+    const nt = document.getElementById('network'); 
+    const ta = document.getElementById('token-a'); 
+    const tn = document.getElementById('token-n'); 
+    const ts = document.getElementById('token-s'); 
+    const yeb = document.getElementById('eth-b');
+    const ytb = document.getElementById('token-b');  
+
+    if (typeof window.ethereum === 'undefined') {
+      console.error('Client does not have an active Web3 provider or the example app is not being run from an HTTP server.');
+      console.log('Go here to install MetaMask: https://metamask.io/');
+      alert(
+        'You need a Web3 provider to run this page. ' +
+        'Go here to install MetaMask:\n\n' +
+        'https://metamask.io/'
+      );
+      web3Warning.classList.remove('hidden');
+    } else {
+      main();
+    }
+
+    async function main() {
+
+      web3 = new Web3(web3.currentProvider);
+
+      const newtworkType = await web3.eth.net.getNetworkType();
+      console.log('newtworkType:', newtworkType);
+      const networkId = await web3.eth.net.getId();
+      console.log('networkId:', networkId);
+
+      if (networkId != 4) {
+        const fatalmessage = document.getElementById('fatalmessage')
+        fatalmessage.innerHTML = "Wrong network. please switch to 'rinkeby'"
+        return
+      }
+
+      const proxyAddress = window.gyen.networks[networkId].address;
+      console.log("gyen address: ", proxyAddress);
+      //const tokenV2Address =  "tokenv2 address"
+      //console.log("tokenv2 address: ", tokenV2Address);
+
+      const proxyAbi = window.gyen.abi;
+      const proxy = new web3.eth.Contract(proxyAbi, proxyAddress);
+
+      let accounts = await window.ethereum.enable();
+      let myAccount = accounts[0];
+      console.log("myAccount", myAccount);
+
+      const tokenAbi = window.tokenv2.abi;
+      console.log(tokenAbi);
+      const token = new web3.eth.Contract(tokenAbi, proxyAddress);
+
+      //let tt = await web3.utils.asciiToHex("0");
+      //let nr = await token.methods.authorizationState(myAccount,tt).call();
+      //console.log("nonce result",nr);
+
+      myAddress.innerText = myAccount;
+      nt.innerText = newtworkType; 
+      const t_name = await token.methods.name().call();
+      tn.innerText = t_name;
+      const t_symbol = await token.methods.symbol().call();
+      ts.innerText = t_symbol;
+      const t_balance = await token.methods.balanceOf(myAccount).call();
+      ytb.innerText = t_balance;
+      let e_balance = await web3.eth.getBalance(myAccount);
+      yeb.innerText = e_balance/1e18 + " ETH";
+      //https://kovan.etherscan.io/token/0x3c6ffff298650e29db51ebf697261574a04b9389
+      const linkaddressstr = `https://${newtworkType}.etherscan.io/token/` + proxyAddress;
+      ta.innerHTML = `<a href=${linkaddressstr} target='_blank'> ${proxyAddress}</a>`;
+
+      posta.innerText = "__";
+      postb.innerText = "__" + " ETH";
+      postgp.innerText = "__gWei";
+      postn.innerText = "__";
+      postpn.innerText = "__";
+      posttm.innerText = "__";
+      itxa.innerText = "__";
+      itxb.innerText = "__";
+      itxc.innerText = "__";
+      itxr.innerText = "__";
+
+      getsingle.onclick = async () => {
+        const { data } = await axios.get("http://localhost:8001/getSinglesenderInfo");
+        console.log(data);
+        posta.innerText = data.result.senderAddress;
+        postb.innerText = data.result.senderBalance;
+        postgp.innerText = data.result.senderGasPrice;
+        postn.innerText = data.result.senderNonce;
+        postpn.innerText = data.result.senderNoncePending;
+        posttm.innerText = data.result.timestamp;
+      };
+
+      getitx.onclick = async () => {
+        const { data } = await axios.get("http://localhost:8001/getITXdepositerInfo");
+        console.log(data);
+        itxa.innerText = data.result.depositerAddress;
+        itxb.innerText = data.result.depositerBalance;
+        itxc.innerText = data.result.contractAddress;
+        itxr.innerText = data.result.relayer;
+      };
+
+      sign.onclick = async () => {
+        txprocess.innerText = "";
+        const _contractAdress = proxyAddress;
+        const _from = myAccount;
+        const _to = toAddress.value;
+        //const _nonce = "0x3000000000000000000000000000000000000000000000000000000000000000";
+        const _nonce = await web3.utils.asciiToHex(nonce.value);
+        const _value = txValue.value;
+        const _validAfter = validAfter.value;
+        const _validBefore = validBefore.value; // expiration of signature, in seconds since unix epoch
+        const _name = await token.methods.name().call();
+        const _chainId = web3.currentProvider.networkVersion;
+        const msgParams = createMessageSig(_name, "2", _chainId, _contractAdress, _from, _to, _value, _validAfter, _validBefore, _nonce);
+
+        web3.currentProvider.sendAsync({
+          method: 'eth_signTypedData_v4',
+          params: [ myAccount, msgParams ],
+          from: myAccount
+        }, async (err, result) => {
+          if (err) {
+            console.error('ERROR', err);
+            alert(err);
+            return;
+          } else if (result.error) {
+            console.error('ERROR', result.error.message);
+            alert(result.error.message);
+            return;
+          }
+
+          //
+          p_fromAddrss.value = myAccount;
+          p_toAddress.value = _to;
+          p_txValue.value = _value;
+          p_validAfter.value = _validAfter;
+          p_validBefore.value = _validBefore;
+          p_nonce.value = _nonce;
+          //p_nonce.value = "0x3000000000000000000000000000000000000000000000000000000000000000";
+          const sig = result.result;
+          const r = '0x' + sig.substring(2).substring(0, 64);
+          const s = '0x' + sig.substring(2).substring(64, 128);
+          const v = '0x' + sig.substring(2).substring(128, 130);
+          p_signature_r.value = r;
+          p_signature_s.value = s;
+          p_signature_v.value = v;
+
+          console.log('signature', sig);
+          console.log('msgParams', JSON.parse(msgParams));
+        });
+      };
+
+      delegate.onclick = async () => {
+
+        txprocess.innerText = "Waiting to be minned by single server(maintained by GMO LW)...";
+        txHash.innerHTML = "...";
+        txStatus.innerText = "...";
+
+        //const nonceByte32 = await web3.utils.asciiToHex(p_nonce.value);
+        const nonceBytes32 =  p_nonce.value;
+        console.log("nonceByte32:   ", nonceBytes32);
+
+        try{
+          /*
+          const tx = await token.methods.transferWithAuthorization(
+            p_fromAddrss.value,
+            p_toAddress.value,
+            p_txValue.value,
+            p_validAfter.value,
+            p_validBefore.value,
+            nonceBytes32,
+            v, r, s).send({
+            from: myAccount,
+            gasLimit: web3.utils.toHex(1000000),
+            //gasPrice: web3.utils.toHex(25000000000),
+          });
+          */
+          const para = {
+            from: p_fromAddrss.value,
+            to: p_toAddress.value,
+            value: p_txValue.value,
+            validAfter: p_validAfter.value,
+            validBefore: p_validBefore.value,
+            nonceValue: nonceBytes32,
+            v: p_signature_v.value,
+            r: p_signature_r.value,
+            s: p_signature_s.value
+          };
+
+          const { data } = await axios.post("http://localhost:8001/postbySingleserver", para);
+          console.log("Result => \n", data);
+
+          txprocess.innerText = "";
+
+          txStatus.innerText = data.success;
+          const linkstr = `https://${newtworkType}.etherscan.io/tx/` + data.result.txHash;
+          txHash.innerHTML = `<a href=${linkstr} target='_blank'> Check in Etherscan</a>`;
+
+          if(!data.result.txHash){
+            console.log("client error => ",data.result);
+            txHash.innerHTML = data.result; 
+          }
+
+        }catch(error){
+          txprocess.innerText = "";
+          console.log("error:\n", error);
+          txStatus.innerText = "error!";
+          //var strs = error.indexOf("transactionHash");
+          //const linkstre = "https://ropsten.etherscan.io/tx/" + error.substring(str+18,66);
+          //txHash.innerHTML = `<a href=${linkstre} target='_blank'> Check in Etherscan</a>`;
+          txHash.innerHTML = error;
+        }
+
+      //end
+      };
+
+  
+      delegateitx.onclick = async () => {
+
+        txprocess1.innerText = "Waiting to be minned by ITX ...";
+        txHash1.innerHTML = "...";
+        txStatus1.innerText = "...";
+
+        //const nonceByte32 = await web3.utils.asciiToHex(p_nonce.value);
+        const nonceBytes32 =  p_nonce.value;
+        console.log("nonceByte32:   ", nonceBytes32);
+
+        try{
+
+          const para = {
+            from: p_fromAddrss.value,
+            to: p_toAddress.value,
+            value: p_txValue.value,
+            validAfter: p_validAfter.value,
+            validBefore: p_validBefore.value,
+            nonceValue: nonceBytes32,
+            v: p_signature_v.value,
+            r: p_signature_r.value,
+            s: p_signature_s.value
+          };
+
+          const { data } = await axios.post("http://localhost:8001/postbyITX", para);
+          console.log("Result => \n", data);
+
+          txprocess1.innerText = "";
+
+          txStatus1.innerText = data.success;
+          const linkstr = `https://${newtworkType}.etherscan.io/tx/` + data.result.txHash;
+          txHash1.innerHTML = `<a href=${linkstr} target='_blank'> Check in Etherscan</a>`;
+          gasfee.innerText = data.result.gasfee; 
+
+          if(!data.result.txHash){
+            console.log("client error => ",data.result);
+            txHash1.innerHTML = data.result; 
+          }
+
+        }catch(error){
+          txprocess1.innerText = "";
+          console.log("error:\n", error);
+          txStatus1.innerText = "error!";
+          //var strs = error.indexOf("transactionHash");
+          //const linkstre = "https://ropsten.etherscan.io/tx/" + error.substring(str+18,66);
+          //txHash.innerHTML = `<a href=${linkstre} target='_blank'> Check in Etherscan</a>`;
+          txHash1.innerHTML = error;
+        }
+
+      //end
+      };
+    }    
+  });
+</script>
+
+</html>

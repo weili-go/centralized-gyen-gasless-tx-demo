@@ -215,6 +215,7 @@
       const agent = new https.Agent({  
         rejectUnauthorized: false
       });
+      console.log("agent=>\n",agent);
 
       web3 = new Web3(web3.currentProvider);
 

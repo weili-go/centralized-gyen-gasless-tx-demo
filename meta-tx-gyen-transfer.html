@@ -164,9 +164,9 @@
       const networkId = await web3.eth.net.getId();
       console.log('networkId:', networkId);
 
-      if (networkId != 3 && networkId != 42) {
+      if (networkId != 3 && networkId != 42 && networkId != 4) {
         const fatalmessage = document.getElementById('fatalmessage')
-        fatalmessage.innerHTML = "Wrong network. please switch to 'kovan' or 'ropsten'"
+        fatalmessage.innerHTML = "Wrong network. please switch to 'kovan' or 'ropsten' or 'rinkeby'"
         return
       }
 

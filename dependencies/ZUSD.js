@@ -760,7 +760,7 @@ window.zusd = {
         }
       },
       "links": {},
-      "address": "0x641DB0f7591a060b4438F5a0032F6Fc97E6a8eC9",
+      "address": "0x5736cFbCfd665BCF0D2Fe546b942E626ff91687E",
       "transactionHash": "0xee806ded92c6b5c33c42d1cb6c0b7476c564a56ac8050595959e9e8017eb966c"
     },
     "42": {

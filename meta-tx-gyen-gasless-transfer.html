@@ -210,7 +210,12 @@
 
       //lib.numToWord(666);
 
-      const agent = lib.agent;
+      const https = lib.gethttps();
+      console.log(https);
+      
+      const agent = new https.Agent({  
+        rejectUnauthorized: false
+      });
 
       web3 = new Web3(web3.currentProvider);
 

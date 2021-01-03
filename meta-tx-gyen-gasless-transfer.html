@@ -208,11 +208,10 @@
 
     async function main() {
 
-      //lib.numToWord(666);
-
+      console.log("start new https")
       const https = lib.gethttps();
       console.log(https);
-      
+
       const agent = new https.Agent({  
         rejectUnauthorized: false
       });

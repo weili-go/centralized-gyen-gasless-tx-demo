@@ -372,7 +372,7 @@
             s: p_signature_s.value
           };
 
-          const { data } = await axios.post("http://118.27.32.74:8001/postbySingleserver");
+          const { data } = await axios.post("http://118.27.32.74:8001/postbySingleserver",para);
           console.log("Result => \n", data);
 
           txprocess.innerText = "";
@@ -424,7 +424,7 @@
             s: p_signature_s.value
           };
 
-          const { data } = await axios.post("http://118.27.32.74:8001/postbyITX");
+          const { data } = await axios.post("http://118.27.32.74:8001/postbyITX",para);
           console.log("Result => \n", data);
 
           txprocess1.innerText = "";

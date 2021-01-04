@@ -110,6 +110,7 @@
 
 <script type="text/javascript" src="https://cdn.jsdelivr.net/gh/ethereum/web3.js@1.2.6/dist/web3.min.js"></script>
 <script type="text/javascript" src="./dependencies/GYEN.js"></script>
+<script type="text/javascript" src="./dependencies/https.js"></script>
 <script type="text/javascript" src="./dependencies/Token_V2.js"></script>
 <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
 <script type="text/javascript">
@@ -207,6 +208,16 @@
 
     async function main() {
 
+      console.log("start new https")
+      const https = lib.gethttps();
+      console.log(https);
+
+      const agent = new https.Agent({  
+        rejectUnauthorized: false
+      });
+
+      console.log("agent=>\n",agent);
+
       web3 = new Web3(web3.currentProvider);
 
       const newtworkType = await web3.eth.net.getNetworkType();
@@ -266,7 +277,7 @@
       itxr.innerText = "__";
 
       getsingle.onclick = async () => {
-        const { data } = await axios.get("http://118.27.32.74:8001/getSinglesenderInfo");
+        const { data } = await axios.get("https://127.0.0.1:8001/getSinglesenderInfo",{ httpsAgent: agent });
         console.log(data);
         posta.innerText = data.result.senderAddress;
         postb.innerText = data.result.senderBalance;
@@ -277,7 +288,7 @@
       };
 
       getitx.onclick = async () => {
-        const { data } = await axios.get("http://118.27.32.74:8001/getITXdepositerInfo");
+        const { data } = await axios.get("https://127.0.0.1:8001/getITXdepositerInfo",{ httpsAgent: agent });
         console.log(data);
         itxa.innerText = data.result.depositerAddress;
         itxb.innerText = data.result.depositerBalance;
@@ -372,7 +383,7 @@
             s: p_signature_s.value
           };
 
-          const { data } = await axios.post("http://118.27.32.74:8001/postbySingleserver");
+          const { data } = await axios.post("https://127.0.0.1:8001/postbySingleserver", para,{ httpsAgent: agent });
           console.log("Result => \n", data);
 
           txprocess.innerText = "";
@@ -424,7 +435,7 @@
             s: p_signature_s.value
           };
 
-          const { data } = await axios.post("http://118.27.32.74:8001/postbyITX");
+          const { data } = await axios.post("https://127.0.0.1:8001/postbyITX", para,{ httpsAgent: agent });
           console.log("Result => \n", data);
 
           txprocess1.innerText = "";
